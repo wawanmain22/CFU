@@ -23,10 +23,21 @@ Route::middleware('guest')->group(function () {
 
 // Protected routes
 Route::middleware(['auth', 'checkRole'])->group(function () {
+
     // Staff routes
+
+    // Dashboard Routes
     Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
+
+    // Batch Routes 
     Route::get('/staff/batch', [StaffBatchController::class, 'index'])->name('staff.batch');
+    Route::post('/staff/batch', [StaffBatchController::class, 'store'])->name('staff.batch.store');
+    Route::put('/staff/batch/{batch}', [StaffBatchController::class, 'update'])->name('staff.batch.update');
+
+    // Pengajuan Routes
     Route::get('/staff/pengajuan', [StaffPengajuanController::class, 'index'])->name('staff.pengajuan');
+
+    // Profile Routes
     Route::get('/staff/profile', [StaffProfileController::class, 'index'])->name('staff.profile');
     
     // Student routes
