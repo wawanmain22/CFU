@@ -1,27 +1,38 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+// Import Admin Controller
+use App\Http\Controllers\Admin\BatchController as StaffBatchController;
+use App\Http\Controllers\Admin\DashboardController as StaffDashboardController;
+use App\Http\Controllers\Admin\PengajuanController as StaffPengajuanController;
+use App\Http\Controllers\Admin\ProfileController as StaffProfileController;
+
+// Import Mahasiswa Controller
+use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
+use App\Http\Controllers\Mahasiswa\PengajuanController as MahasiswaPengajuanController;
+use App\Http\Controllers\Mahasiswa\ProfileController as MahasiswaProfilController;
+use App\Models\Mahasiswa;
+
+Route::middleware('guest')->group(function () {
+    Route::get('/', function () {
+        return Inertia::render('Index');
+    });
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// Protected routes
+Route::middleware(['auth', 'checkRole'])->group(function () {
+    // Staff routes
+    Route::get('/staff/dashboard', [StaffDashboardController::class, 'index'])->name('staff.dashboard');
+    Route::get('/staff/batch', [StaffBatchController::class, 'index'])->name('staff.batch');
+    Route::get('/staff/pengajuan', [StaffPengajuanController::class, 'index'])->name('staff.pengajuan');
+    Route::get('/staff/profile', [StaffProfileController::class, 'index'])->name('staff.profile');
+    
+    // Student routes
+    Route::get('/student/dashboard', [MahasiswaDashboardController::class, 'index'])->name('student.dashboard');
+    Route::get('/student/pengajuan', [MahasiswaPengajuanController::class, 'index'])->name('student.pengajuan');
+    Route::get('/student/profile', [MahasiswaProfilController::class, 'index'])->name('student.profile');
 });
 
 require __DIR__.'/auth.php';

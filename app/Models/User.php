@@ -17,10 +17,21 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+
+    protected $table = 'users';
+    public $timestamps = false;
     protected $fillable = [
         'name',
         'email',
         'password',
+        'birthdate',
+        'gender',
+        'phone',
+        'religion',
+        'address',
+        'role',
+        'created_at',
+        'updated_at',
     ];
 
     /**
@@ -41,8 +52,17 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function staff()
+    {
+        return $this->hasOne(Staff::class);
+    }
+
+    public function mahasiswa()
+    {
+        return $this->hasOne(Mahasiswa::class);
     }
 }
