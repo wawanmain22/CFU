@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Settings,
   LogOut,
+  History,
 } from "lucide-react";
 import { ModeToggle } from "@/Components/mode-toggle";
 
@@ -113,7 +114,7 @@ export default function MahasiswaLayout({
                     <div
                       className={cn(
                         "flex items-center w-full py-1.5 text-sm font-medium rounded-md",
-                        "transition-all duration-200 ease-in-out",
+                        "transition-all duration-200 ease-in-out", 
                         "hover:bg-accent hover:text-accent-foreground",
                         collapsed ? "px-5 justify-center" : "px-2",
                         route().current('student.pengajuan') && "bg-sidebar-accent"
@@ -128,6 +129,28 @@ export default function MahasiswaLayout({
                         collapsed ? "hidden" : "inline-flex"
                       )}>
                         Pengajuan Saya
+                      </span>
+                    </div>
+                  </Link>
+                  <Link href={route('student.history')} as="div">
+                    <div
+                      className={cn(
+                        "flex items-center w-full py-1.5 text-sm font-medium rounded-md",
+                        "transition-all duration-200 ease-in-out",
+                        "hover:bg-accent hover:text-accent-foreground", 
+                        collapsed ? "px-5 justify-center" : "px-2",
+                        route().current('student.history') && "bg-sidebar-accent"
+                      )}
+                    >
+                      <History className={cn(
+                        "h-4 w-4",
+                        collapsed ? "" : "min-w-[16px]"
+                      )} />
+                      <span className={cn(
+                        "ml-2 transition-all duration-300",
+                        collapsed ? "hidden" : "inline-flex"
+                      )}>
+                        History
                       </span>
                     </div>
                   </Link>
@@ -238,6 +261,19 @@ export default function MahasiswaLayout({
                     >
                       <ClipboardList className="h-4 w-4 mr-2" />
                       Pengajuan Saya
+                    </div>
+                  </Link>
+                  <Link href={route('student.history')} as="div">
+                    <div
+                      className={cn(
+                        "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
+                        "transition-all duration-200 ease-in-out",
+                        "hover:bg-accent hover:text-accent-foreground",
+                        route().current('student.history') && "bg-sidebar-accent"
+                      )}
+                    >
+                      <History className="h-4 w-4 mr-2" />
+                      History
                     </div>
                   </Link>
                   <Link href={route('student.profile')} as="div">

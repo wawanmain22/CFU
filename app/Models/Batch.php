@@ -14,4 +14,9 @@ class Batch extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function pengajuans()
+    {
+        return $this->hasMany(Pengajuan::class);
+    }
 }
