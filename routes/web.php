@@ -15,11 +15,29 @@ use App\Http\Controllers\Mahasiswa\PengajuanController as MahasiswaPengajuanCont
 use App\Http\Controllers\Mahasiswa\ProfileController as MahasiswaProfilController;
 use App\Http\Controllers\Mahasiswa\HistoryController as MahasiswaHistoryController;
 
+// Import Donation Controller
+use App\Http\Controllers\DonationController;
+
 Route::middleware('guest')->group(function () {
     Route::get('/', function () {
         return Inertia::render('Index');
     });
+
+    Route::get('/about', function () {
+        return Inertia::render('About');
+    });
 });
+
+
+// Donation Routes
+Route::group(['prefix' => 'donation'], function () {
+    Route::get('/', [DonationController::class, 'index'])->name('donation');
+    Route::post('/', [DonationController::class, 'store'])->name('donation.store');
+    Route::get('/donation/{donation_code}/status', [DonationController::class, 'getStatus'])->name('donation.status');
+    Route::post('/donation/{donation_code}/cancel', [DonationController::class, 'cancel'])->name('donation.cancel');
+});
+
+
 
 // Protected routes
 Route::middleware(['auth', 'checkRole'])->group(function () {
