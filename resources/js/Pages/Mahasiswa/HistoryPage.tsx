@@ -9,7 +9,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/Components/ui/table";
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
   DialogContent, 
@@ -87,13 +87,12 @@ export default function HistoryPage({ auth, pengajuans, flash }: Props) {
   };
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('id-ID', {
-      day: 'numeric',
-      month: 'long',
+    return new Date(dateString).toLocaleString('id-ID', {
       year: 'numeric',
+      month: 'long',
+      day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -103,8 +102,14 @@ export default function HistoryPage({ auth, pengajuans, flash }: Props) {
       approved: 'bg-green-100 text-green-800 border-green-200',
       rejected: 'bg-red-100 text-red-800 border-red-200',
     };
+
+    const statusText = {
+      pending: 'Pending',
+      approved: 'Approved', 
+      rejected: 'Rejected'
+    };
     
-    return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[status]}`}>{status}</span>;
+    return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[status]}`}>{statusText[status]}</span>;
   };
 
   return (
@@ -149,7 +154,13 @@ export default function HistoryPage({ auth, pengajuans, flash }: Props) {
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{pengajuan.batch.name}</TableCell>
                   <TableCell>{getStatusBadge(pengajuan.status)}</TableCell>
-                  <TableCell>{new Date(pengajuan.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(pengajuan.created_at).toLocaleString('id-ID', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       onClick={() => handleShowDetail(pengajuan)}

@@ -1,7 +1,7 @@
 import StaffLayout from "@/Layouts/StaffLayout";
 import { Head, useForm } from "@inertiajs/react";
 import { PageProps } from "@/types";
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import { PlusIcon, PencilIcon } from "lucide-react";
 import {
   Table,
@@ -130,13 +130,12 @@ export default function BatchPage({ auth, batches, flash }: Props) {
                         ? 'bg-green-100 text-green-800 dark:bg-green-400/20 dark:text-green-400' 
                         : 'bg-gray-100 text-gray-800 dark:bg-gray-400/20 dark:text-gray-400'
                     }`}>
-                      {batch.status}
+                      {batch.status === 'open' ? 'Open' : 'Closed'}
                     </span>
                   </TableCell>
                   <TableCell>{format(new Date(batch.created_at), 'dd MMM yyyy HH:mm')}</TableCell>
                   <TableCell>
                     {(() => {
-                      console.log('Batch:', batch.name, 'Updated at:', batch.updated_at);
                       return batch.updated_at === null ? (
                         <span className="text-muted-foreground text-sm">On Open</span>
                       ) : (

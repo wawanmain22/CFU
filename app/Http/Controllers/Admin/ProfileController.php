@@ -82,6 +82,14 @@ class ProfileController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
+
+        // Check if current password matches
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'The provided password does not match your current password.'
+            ]);
+        }
+
         $user->fill([
             'password' => Hash::make($validated['new_password'])
         ])->save();

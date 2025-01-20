@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Com
 import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import { Textarea } from "@/Components/ui/textarea";
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import { AlertCircle, FileText, Info, Send, ClipboardList, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { useEffect, useState } from "react";

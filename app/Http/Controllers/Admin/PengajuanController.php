@@ -21,9 +21,21 @@ class PengajuanController extends Controller
                 return [
                     'id' => $pengajuan->id,
                     'user' => [
-                        'name' => $pengajuan->user->name,
-                        'email' => $pengajuan->user->email,
-                    ],
+                    'name' => $pengajuan->user->name,
+                    'email' => $pengajuan->user->email,
+                    'birthdate' => $pengajuan->user->birthdate,
+                    'gender' => $pengajuan->user->gender,
+                    'phone' => $pengajuan->user->phone,
+                    'religion' => $pengajuan->user->religion,
+                    'address' => $pengajuan->user->address,
+                    'mahasiswa' => $pengajuan->user->mahasiswa ? [
+                        'student_id' => $pengajuan->user->mahasiswa->student_id,
+                        'university_name' => $pengajuan->user->mahasiswa->university_name,
+                        'faculty' => $pengajuan->user->mahasiswa->faculty,
+                        'study_program' => $pengajuan->user->mahasiswa->study_program,
+                        'current_semester' => $pengajuan->user->mahasiswa->current_semester,
+                    ] : null,
+                ],
                     'batch' => [
                         'name' => $pengajuan->batch->name,
                     ],
@@ -99,6 +111,7 @@ class PengajuanController extends Controller
                 'foto_dokumentasi_approved' => $pengajuan->foto_dokumentasi_approved,
                 'created_at' => $pengajuan->created_at,
                 'updated_at' => $pengajuan->updated_at,
+                'reviewed_by' => $pengajuan->reviewer ? $pengajuan->reviewer->name : null,
             ]
         ];
     }

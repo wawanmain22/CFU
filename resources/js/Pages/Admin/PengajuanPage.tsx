@@ -9,7 +9,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/Components/ui/table";
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import { 
   Dialog, 
   DialogContent, 
@@ -62,6 +62,7 @@ interface Pengajuan {
   foto_dokumentasi_approved: string | null;
   created_at: string;
   updated_at: string;
+  reviewed_by?: string;
 }
 
 interface Props extends PageProps {
@@ -164,13 +165,12 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
   };
 
   const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('id-ID', {
-      day: 'numeric',
-      month: 'long',
+    return new Date(dateString).toLocaleString('id-ID', {
       year: 'numeric',
+      month: 'long',
+      day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -180,8 +180,14 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
       approved: 'bg-green-100 text-green-800 border-green-200',
       rejected: 'bg-red-100 text-red-800 border-red-200',
     };
+
+    const statusText = {
+      pending: 'Pending',
+      approved: 'Approved', 
+      rejected: 'Rejected'
+    };
     
-    return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[status]}`}>{status}</span>;
+    return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[status]}`}>{statusText[status]}</span>;
   };
 
   return (
@@ -233,7 +239,13 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
                   </TableCell>
                   <TableCell>{pengajuan.batch.name}</TableCell>
                   <TableCell>{getStatusBadge(pengajuan.status)}</TableCell>
-                  <TableCell>{new Date(pengajuan.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(pengajuan.created_at).toLocaleString('id-ID', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}</TableCell>
                   <TableCell className="text-right">
                     {pengajuan.status === 'pending' ? (
                       <Button
@@ -275,10 +287,36 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
               <div className="space-y-6">
                 {/* Preview Data Pengajuan */}
                 <div className="rounded-lg border p-4 space-y-4 bg-muted/50">
-                  <div>
-                    <h4 className="font-medium mb-1">Informasi Mahasiswa</h4>
-                    <p className="text-sm">Nama: {selectedPengajuan.user.name}</p>
-                    <p className="text-sm">Email: {selectedPengajuan.user.email}</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Informasi Mahasiswa</h4>
+                      <div className="space-y-1">
+                        <p className="text-sm">Nama: {selectedPengajuan.user.name}</p>
+                        <p className="text-sm">Email: {selectedPengajuan.user.email}</p>
+                        <p className="text-sm">Tanggal Lahir: {new Date(selectedPengajuan.user.birthdate).toLocaleDateString()}</p>
+                        <p className="text-sm">Jenis Kelamin: {selectedPengajuan.user.gender === 'male' ? 'Laki-laki' : 'Perempuan'}</p>
+                        <p className="text-sm">No. Telepon: {selectedPengajuan.user.phone}</p>
+                        <p className="text-sm">Agama: {selectedPengajuan.user.religion}</p>
+                        <p className="text-sm">Alamat: {selectedPengajuan.user.address}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium mb-2">Informasi Akademik</h4>
+                      <div className="space-y-1">
+                        {selectedPengajuan.user.mahasiswa ? (
+                          <>
+                            <p className="text-sm">NIM: {selectedPengajuan.user.mahasiswa.student_id}</p>
+                            <p className="text-sm">Universitas: {selectedPengajuan.user.mahasiswa.university_name}</p>
+                            <p className="text-sm">Fakultas: {selectedPengajuan.user.mahasiswa.faculty}</p>
+                            <p className="text-sm">Program Studi: {selectedPengajuan.user.mahasiswa.study_program}</p>
+                            <p className="text-sm">Semester: {selectedPengajuan.user.mahasiswa.current_semester}</p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Data akademik tidak tersedia</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   <div>
@@ -461,6 +499,9 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
                     <p className="text-sm">Tanggal Pengajuan: {formatDateTime(selectedPengajuan.created_at)}</p>
                     {selectedPengajuan.updated_at !== selectedPengajuan.created_at && (
                       <p className="text-sm">Terakhir Diupdate: {formatDateTime(selectedPengajuan.updated_at)}</p>
+                    )}
+                    {selectedPengajuan.reviewed_by && (
+                      <p className="text-sm">Direview oleh: {selectedPengajuan.reviewed_by}</p>
                     )}
                   </div>
                 </div>

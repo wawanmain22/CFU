@@ -1,7 +1,7 @@
-import { useEffect, FormEventHandler } from 'react';
+import { useEffect, FormEventHandler, useState } from 'react';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -12,10 +12,11 @@ import {
 } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { GraduationCap, Mail, Lock, AlertCircle } from 'lucide-react';
+import { GraduationCap, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 
 export default function Login() {
+    const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm<{
         email: string;
         password: string;
@@ -84,16 +85,29 @@ export default function Login() {
                                 <Label htmlFor="password" className="flex items-center gap-2">
                                     <Lock className="h-4 w-4" /> Password
                                 </Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    value={data.password}
-                                    className="mt-1 block w-full"
-                                    autoComplete="current-password"
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    required
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        value={data.password}
+                                        className="mt-1 block w-full pr-10"
+                                        autoComplete="current-password"
+                                        onChange={(e) => setData('password', e.target.value)}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex items-center justify-between">
