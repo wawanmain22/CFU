@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Com
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Textarea } from "@/Components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { Switch } from "@/Components/ui/switch";
 import { Heart, CreditCard, Clock, AlertCircle, Wallet, QrCode, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";

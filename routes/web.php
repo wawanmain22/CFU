@@ -1,27 +1,26 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\IndexController;
 // Import Admin Controller
+use App\Http\Controllers\DonationController;
 use App\Http\Controllers\Admin\BatchController as StaffBatchController;
-use App\Http\Controllers\Admin\DashboardController as StaffDashboardController;
-use App\Http\Controllers\Admin\PengajuanController as StaffPengajuanController;
 use App\Http\Controllers\Admin\ProfileController as StaffProfileController;
 
 // Import Mahasiswa Controller
-use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
-use App\Http\Controllers\Mahasiswa\PengajuanController as MahasiswaPengajuanController;
+use App\Http\Controllers\Admin\DashboardController as StaffDashboardController;
+use App\Http\Controllers\Admin\PengajuanController as StaffPengajuanController;
 use App\Http\Controllers\Mahasiswa\ProfileController as MahasiswaProfilController;
 use App\Http\Controllers\Mahasiswa\HistoryController as MahasiswaHistoryController;
 
 // Import Donation Controller
-use App\Http\Controllers\DonationController;
+use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
+use App\Http\Controllers\Mahasiswa\PengajuanController as MahasiswaPengajuanController;
 
 Route::middleware('guest')->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('Index');
-    });
+    Route::get('/', [IndexController::class, 'index'])->name('index');
 
     Route::get('/about', function () {
         return Inertia::render('About');

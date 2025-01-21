@@ -77,11 +77,19 @@ class HistoryController extends Controller
             abort(403);
         }
 
-        // Tentukan file path berdasarkan type
+        // Untuk foto dokumentasi, gunakan public storage
+        if ($type === 'foto_dokumentasi') {
+            $filePath = $pengajuan->foto_dokumentasi_approved;
+            if (!Storage::disk('public')->exists($filePath)) {
+                abort(404);
+            }
+            return Storage::disk('public')->response($filePath);
+        }
+
+        // Untuk file lainnya gunakan local storage
         $filePath = match($type) {
             'dokumen_pengajuan' => $pengajuan->dokumen_pengajuan,
             'dokumen_approved' => $pengajuan->status === 'approved' ? $pengajuan->dokumen_approved : abort(403),
-            'foto_dokumentasi' => $pengajuan->status === 'approved' ? $pengajuan->foto_dokumentasi_approved : abort(403),
             default => abort(404)
         };
 

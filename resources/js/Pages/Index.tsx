@@ -2,9 +2,93 @@ import { Head, Link } from "@inertiajs/react";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Button } from "@/Components/ui/button";
 import { Card, CardContent } from "@/Components/ui/card";
-import { GraduationCap, Heart, Users, ArrowRight, HandHeart, School, Trophy } from "lucide-react";
+import { GraduationCap, Heart, Users, ArrowRight, HandHeart, School, Trophy, Gift, Image, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ScrollArea } from "@/Components/ui/scroll-area";
+import { Avatar, AvatarFallback } from "@/Components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/Components/ui/carousel";
+import { type CarouselApi } from "@/Components/ui/carousel";
 
-export default function Index() {
+interface Donation {
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  amount: number;
+  description: string | null;
+  created_at: string;
+}
+
+interface Batch {
+  id: number;
+  name: string;
+}
+
+interface Pengajuan {
+  id: number;
+  user: {
+    name: string;
+  };
+  batch: {
+    id: number;
+    name: string;
+  };
+  foto_dokumentasi_approved: string;
+}
+
+interface Props {
+  donations: Donation[];
+  batches: Batch[];
+  pengajuans: Pengajuan[];
+}
+
+export default function Index({ donations, batches, pengajuans }: Props) {
+  const [selectedBatch, setSelectedBatch] = useState<number | null>(batches[0]?.id || null);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
+
+  const filteredPengajuans = selectedBatch 
+    ? pengajuans.filter(p => p.batch.id === selectedBatch)
+    : pengajuans;
+
+  useEffect(() => {
+    if (!api) return;
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap() + 1);
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+    });
+  }, [api]);
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (!api || count <= 1) return;
+
+    const intervalId = setInterval(() => {
+      api.scrollNext();
+    }, 3000); // Change slide every 3 seconds
+
+    return () => clearInterval(intervalId);
+  }, [api, count]);
+
+  const getInitials = (name: string | null) => {
+    if (!name) return "OB"; // "Orang Baik"
+    return name
+      .split(" ")
+      .map(word => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getDefaultDescription = (name: string | null) => {
+    if (!name) return "Semoga bantuan ini bermanfaat untuk pendidikan adik-adik mahasiswa.";
+    return null;
+  };
+
   return (
     <GuestLayout>
       <Head title="Welcome to CFU" />
@@ -65,6 +149,156 @@ export default function Index() {
               </Card>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Para Donatur Section */}
+      <section className="py-16 bg-background">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-2 mb-12">
+            <h2 className="text-3xl font-bold tracking-tight">Para Donatur Kami</h2>
+            <p className="text-muted-foreground">
+              Terima kasih kepada para donatur yang telah berpartisipasi
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {donations.map((donation, index) => (
+              <div key={index} className="relative">
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-card hover:bg-muted/50 transition-colors">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-lg font-semibold text-primary">
+                        {(donation.name || "Anonim").charAt(0)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex-grow space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{donation.name || "Anonim"}</h3>
+                      <span className="text-xs text-muted-foreground">
+                        • {new Date(donation.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-primary">
+                      Rp {new Intl.NumberFormat('id-ID').format(donation.amount)}
+                    </p>
+                    {donation.description && (
+                      <p className="text-sm text-muted-foreground italic">
+                        "{donation.description}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Divider */}
+                {index < donations.length - 1 && (
+                  <div className="absolute bottom-0 left-16 right-4 h-px bg-border" />
+                )}
+              </div>
+            ))}
+
+            {donations.length === 0 && (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                  <Heart className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium mb-1">Belum Ada Donatur</h3>
+                <p className="text-sm text-muted-foreground">
+                  Jadilah yang pertama memberikan donasi
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Recipients Gallery Section */}
+      <section className="bg-muted/50 py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold">Galeri Penerima Donasi</h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Lihat dampak nyata dari donasi Anda
+            </p>
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            <Select
+              value={selectedBatch?.toString()}
+              onValueChange={(value) => setSelectedBatch(parseInt(value))}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Pilih Batch" />
+              </SelectTrigger>
+              <SelectContent>
+                {batches.map((batch) => (
+                  <SelectItem key={batch.id} value={batch.id.toString()}>
+                    {batch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {filteredPengajuans.length > 0 ? (
+            <div className="mt-8">
+              <Carousel
+                setApi={setApi}
+                className="w-full max-w-5xl mx-auto"
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+              >
+                <CarouselContent>
+                  {filteredPengajuans.map((pengajuan) => (
+                    <CarouselItem key={pengajuan.id} className="md:basis-1/2 lg:basis-1/3">
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="aspect-square overflow-hidden rounded-lg">
+                            <img
+                              src={pengajuan.foto_dokumentasi_approved}
+                              alt={`Foto dokumentasi ${pengajuan.user.name}`}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="mt-4">
+                            <h3 className="font-semibold">{pengajuan.user.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {pengajuan.batch.name}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {count > 1 && (
+                  <>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </>
+                )}
+              </Carousel>
+              <div className="py-2 text-center text-sm text-muted-foreground">
+                Slide {current} dari {count}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-16 text-center">
+              <p className="text-muted-foreground">
+                {selectedBatch 
+                  ? "Tidak ada penerima donasi untuk batch ini"
+                  : "Belum ada penerima donasi"}
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

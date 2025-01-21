@@ -1,7 +1,7 @@
 import StaffLayout from "@/Layouts/StaffLayout";
 import { Head, useForm } from "@inertiajs/react";
 import { PageProps } from "@/types";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { PlusIcon, PencilIcon } from "lucide-react";
 import {
   Table,

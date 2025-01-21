@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Com
 import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import { Textarea } from "@/Components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/Components/ui/button";
 import { AlertCircle, FileText, Info, Send, ClipboardList, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { useEffect, useState } from "react";
@@ -113,7 +113,7 @@ export default function PengajuanPage({ auth, canSubmit, currentBatch, hasSubmit
                   type="button" 
                   variant="outline" 
                   className="w-full" 
-                  onClick={() => window.open('/storage/pengajuan/TemplatePengajuan.pdf', '_blank')}
+                  onClick={() => window.open('/pengajuan/TemplatePengajuan.pdf', '_blank')}
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Download Template Dokumen

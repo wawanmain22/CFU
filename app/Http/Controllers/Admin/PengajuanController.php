@@ -68,7 +68,7 @@ class PengajuanController extends Controller
     
         if ($request->status === 'approved') {
             $data['dokumen_approved'] = $request->file('dokumen_approved')->store('pengajuans/approved', 'local');
-            $data['foto_dokumentasi_approved'] = $request->file('foto_dokumentasi_approved')->store('pengajuans/dokumentasi', 'local');
+            $data['foto_dokumentasi_approved'] = $request->file('foto_dokumentasi_approved')->store('pengajuans/dokumentasi', 'public');
         }
     
         $pengajuan->update($data);
@@ -121,13 +121,18 @@ class PengajuanController extends Controller
         // Validasi akses
         if (!Auth::user()->role === 'staff') {
             abort(403);
+        }   
+
+        // Tentukan file path dan storage berdasarkan type
+        if ($type === 'foto_dokumentasi') {
+            $filePath = $pengajuan->foto_dokumentasi_approved;
+            return Storage::disk('public')->response($filePath);
         }
 
-        // Tentukan file path berdasarkan type
+        // Untuk file lainnya gunakan local storage
         $filePath = match($type) {
             'dokumen_pengajuan' => $pengajuan->dokumen_pengajuan,
             'dokumen_approved' => $pengajuan->dokumen_approved,
-            'foto_dokumentasi' => $pengajuan->foto_dokumentasi_approved,
             default => abort(404)
         };
 
