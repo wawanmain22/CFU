@@ -15,7 +15,7 @@ interface Props {
 
 export default function AlertError({ message, onClose }: Props) {
   const [open, setOpen] = useState(true);
-  const [countdown, setCountdown] = useState(1.5);
+  const [countdown, setCountdown] = useState(3.0);
 
   useEffect(() => {
     const timer = setInterval(() => {

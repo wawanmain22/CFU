@@ -17,10 +17,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/Components/ui/dialog";
-import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { Eye, FileText, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import AlertSuccess from "@/Components/AlertSuccess";
 
 interface Pengajuan {
   id: number;
@@ -48,33 +48,8 @@ interface Props extends PageProps {
 }
 
 export default function HistoryPage({ auth, pengajuans, flash }: Props) {
-  const [showAlert, setShowAlert] = useState(false);
-  const [countdown, setCountdown] = useState(3);
   const [selectedPengajuan, setSelectedPengajuan] = useState<Pengajuan | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
-
-  useEffect(() => {
-    if (flash.success) {
-      setShowAlert(true);
-      setCountdown(3);
-
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setTimeout(() => {
-              setShowAlert(false);
-              window.location.reload();
-            }, 1000);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [flash.success]);
 
   const handleShowDetail = async (pengajuan: Pengajuan) => {
     try {
@@ -127,15 +102,7 @@ export default function HistoryPage({ auth, pengajuans, flash }: Props) {
           </p>
         </div>
 
-        {showAlert && flash.success && (
-          <Alert className="bg-green-50 border-green-200">
-            <Info className="h-5 w-5 text-green-600" />
-            <AlertDescription className="text-green-800 font-medium flex items-center justify-between">
-              <span>{flash.success}</span>
-              <span className="text-sm text-green-600">({countdown}s)</span>
-            </AlertDescription>
-          </Alert>
-        )}
+        {flash.success && <AlertSuccess message={flash.success} />}
 
         <div className="rounded-lg border">
           <Table>
@@ -179,7 +146,7 @@ export default function HistoryPage({ auth, pengajuans, flash }: Props) {
 
         {/* Detail Dialog */}
         <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Detail Pengajuan</DialogTitle>
               <DialogDescription>

@@ -11,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/Components/ui/table";
-import { Alert, AlertDescription } from "@/Components/ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,8 +21,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/Components/ui/alert-dialog";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
+import AlertSuccess from "@/Components/AlertSuccess";
+import AlertError from "@/Components/AlertError";
 
 interface Batch {
   id: number;
@@ -42,34 +43,32 @@ interface Props extends PageProps {
 }
 
 export default function BatchPage({ auth, batches, flash }: Props) {
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
+  const [localFlash, setLocalFlash] = useState(flash);
   
   const { post, put } = useForm();
 
-  useEffect(() => {
-    if (flash.success) {
-      setShowSuccessAlert(true);
-      const timer = setTimeout(() => setShowSuccessAlert(false), 5000);
-      return () => clearTimeout(timer);
-    }
-    if (flash.error) {
-      setShowErrorAlert(true);
-      const timer = setTimeout(() => setShowErrorAlert(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [flash]);
-
   const handleCreate = () => {
-    post(route('staff.batch.store'));
-    setShowCreateDialog(false);
+    post(route('staff.batch.store'), {
+      preserveScroll: true,
+      preserveState: true,
+      onSuccess: (page: any) => {
+        setShowCreateDialog(false);
+        setLocalFlash(page.props.flash);
+      },
+    });
   };
 
   const handleUpdate = (id: number) => {
-    put(route('staff.batch.update', id));
-    setSelectedBatchId(null);
+    put(route('staff.batch.update', id), {
+      preserveScroll: true,
+      preserveState: true,
+      onSuccess: (page: any) => {
+        setSelectedBatchId(null);
+        setLocalFlash(page.props.flash);
+      },
+    });
   };
 
   return (
@@ -77,20 +76,12 @@ export default function BatchPage({ auth, batches, flash }: Props) {
       <Head title="Batch Management" />
       
       <div className="space-y-4">
-        {showSuccessAlert && flash.success && (
-          <Alert className="border-2 border-green-500 bg-green-100 dark:bg-transparent dark:border-green-500">
-            <AlertDescription className="text-green-800 font-medium dark:text-green-400">
-              {flash.success}
-            </AlertDescription>
-          </Alert>
+        {localFlash.success && (
+          <AlertSuccess message={localFlash.success} />
         )}
 
-        {showErrorAlert && flash.error && (
-          <Alert className="border-2 border-red-500 bg-red-100 dark:bg-transparent dark:border-red-500">
-            <AlertDescription className="text-red-800 font-medium dark:text-red-400">
-              {flash.error}
-            </AlertDescription>
-          </Alert>
+        {localFlash.error && (
+          <AlertError message={localFlash.error} />
         )}
 
         <div className="flex justify-between items-center">
@@ -120,7 +111,7 @@ export default function BatchPage({ auth, batches, flash }: Props) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {batches.map((batch, index) => (
+              {batches?.map((batch, index) => (
                 <TableRow key={batch.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">{batch.name}</TableCell>

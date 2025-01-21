@@ -38,8 +38,12 @@ export default function About() {
                   <div className="flex flex-col items-center text-center">
                     <div className="relative mb-6">
                       <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-75 blur transition-all duration-300 group-hover:opacity-100" />
-                      <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-muted transition-transform duration-300 hover:scale-110">
-                        {member.icon}
+                      <div className="relative h-24 w-24 overflow-hidden rounded-full transition-transform duration-300 hover:scale-110">
+                        <img
+                          src={member.image}
+                          alt={member.name}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                     </div>
                     <h3 className="text-xl font-semibold">{member.name}</h3>
@@ -106,35 +110,41 @@ const teamMembers = [
     role: "Project Lead & Backend Developer",
     description: "Mengkoordinasikan tim dan mengembangkan backend sistem dengan Laravel.",
     icon: <Code2 className="h-12 w-12 text-primary" />,
+    image: "/storage/aboutUs/Ridwan.jpeg",
   },
   {
     name: "Rangga",
     role: "Frontend Developer",
     description: "Membangun antarmuka pengguna yang menarik dan responsif dengan React.",
     icon: <Laptop2 className="h-12 w-12 text-primary" />,
+    image: "/storage/aboutUs/Rangga.jpeg",
   },
   {
     name: "Darwan",
     role: "Backend Developer",
     description: "Mengembangkan fitur-fitur backend dan API untuk platform.",
     icon: <Code2 className="h-12 w-12 text-primary" />,
+    image: "/storage/aboutUs/Darwan.jpeg",
   },
   {
     name: "Faris",
     role: "UI/UX Designer",
     description: "Merancang pengalaman pengguna yang intuitif dan menarik.",
     icon: <Lightbulb className="h-12 w-12 text-primary" />,
+    image: "/storage/aboutUs/Faris.jpeg",
   },
   {
     name: "Fadly",
     role: "Frontend Developer",
     description: "Mengimplementasikan desain ke dalam kode yang bersih dan efisien.",
     icon: <Laptop2 className="h-12 w-12 text-primary" />,
+    image: "/storage/aboutUs/Fadly.jpeg",
   },
   {
     name: "Dhika",
     role: "Full Stack Developer",
     description: "Mengembangkan fitur-fitur full stack untuk platform.",
     icon: <Code2 className="h-12 w-12 text-primary" />,
+    image: "/storage/aboutUs/Dhika.jpeg",
   },
 ];

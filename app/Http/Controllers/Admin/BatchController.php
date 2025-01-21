@@ -46,7 +46,7 @@ class BatchController extends Controller
             'created_at' => now(),
         ]);
 
-        return back()->with('success', 'Batch berhasil dibuat');
+        return redirect()->back()->with('success', 'Batch berhasil dibuat');
     }
 
     public function update(Request $request, Batch $batch)

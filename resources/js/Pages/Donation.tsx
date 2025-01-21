@@ -1,15 +1,32 @@
-import { Head, useForm } from "@inertiajs/react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Textarea } from "@/Components/ui/textarea";
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Switch } from "@/Components/ui/switch";
-import { Heart, CreditCard, Clock, AlertCircle } from "lucide-react";
+import { Heart, CreditCard, Clock, AlertCircle, Wallet, QrCode, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Alert, AlertDescription, AlertTitle } from "@/Components/ui/alert";
+import AlertSuccess from "@/Components/AlertSuccess";
+import AlertError from "@/Components/AlertError";
+
+// Add type definition for page props
+interface PageProps {
+  auth: {
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+  };
+  flash: {
+    success?: string;
+    error?: string;
+  };
+  [key: string]: any; // Add index signature
+}
 
 // Declare window type for Midtrans
 declare global {
@@ -35,9 +52,42 @@ interface PaymentStatus {
   message?: string;
 }
 
+// Add payment methods constant
+const PAYMENT_METHODS = [
+    {
+        id: "direct_debit",
+        name: "E-Wallet",
+        description: "DANA, GoPay, ShopeePay, OVO",
+        icon: <Wallet className="h-6 w-6" />
+    },
+    {
+        id: "va",
+        name: "Transfer Bank",
+        description: "BCA, BNI, BRI, Mandiri",
+        icon: <Building2 className="h-6 w-6" />
+    },
+    {
+        id: "qris",
+        name: "QRIS",
+        description: "Scan untuk bayar dengan QRIS",
+        icon: <QrCode className="h-6 w-6" />
+    },
+    {
+        id: "credit_card",
+        name: "Kartu Kredit",
+        description: "Visa, Mastercard, JCB",
+        icon: <CreditCard className="h-6 w-6" />
+    }
+];
+
 export default function Donation() {
+  const { flash } = usePage<PageProps>().props;
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>({ status: 'idle' });
+  const [paymentStatus] = useState<PaymentStatus>({ status: 'idle' });
+  const [alert, setAlert] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
   
   // Add useEffect to load Midtrans script
   useEffect(() => {
@@ -52,6 +102,23 @@ export default function Donation() {
     };
   }, []);
 
+  // Handle flash messages from redirect
+  useEffect(() => {
+    if (flash.success || flash.error) {
+      setAlert({
+        type: flash.success ? 'success' : 'error',
+        message: flash.success || flash.error || ''
+      });
+
+      // Auto dismiss after 1.5 seconds
+      const timer = setTimeout(() => {
+        setAlert({ type: null, message: '' });
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [flash]);
+
   const { data, setData, reset } = useForm({
     name: "",
     email: "",
@@ -60,37 +127,6 @@ export default function Donation() {
     description: "",
   });
 
-  // Function to check payment status
-  const checkPaymentStatus = async (donation_code: string) => {
-    try {
-      const response = await axios.get(`/donation/${donation_code}/status`);
-      const status = response.data.data.transaction_status;
-      
-      setPaymentStatus({
-        donation_code,
-        status: status === 'settlement' ? 'success' 
-          : status === 'pending' ? 'pending'
-          : status === 'expire' ? 'expired'
-          : 'failed',
-        message: response.data.data.status_message
-      });
-    } catch (error) {
-      console.error('Error checking status:', error);
-    }
-  };
-
-  // Function to cancel payment
-  const cancelPayment = async (donation_code: string) => {
-    try {
-      await axios.post(`/donation/${donation_code}/cancel`);
-      setPaymentStatus({
-        status: 'idle'
-      });
-      reset();
-    } catch (error) {
-      console.error('Error canceling payment:', error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,63 +150,38 @@ export default function Donation() {
       // Show SNAP popup
       window.snap.pay(snapToken, {
         onSuccess: function(result: any) {
-          console.log("Success:", result);
-          // Check payment type
-          const paymentType = result.payment_type;
-          let successMessage = "Pembayaran berhasil! Terima kasih atas donasi Anda.";
-          
-          // Add specific messages based on payment type
-          if (paymentType === 'bank_transfer') {
-            successMessage = "Transfer bank berhasil! Terima kasih atas donasi Anda.";
-          } else if (paymentType === 'qris') {
-            successMessage = "Pembayaran QRIS berhasil! Terima kasih atas donasi Anda.";
-          } else if (paymentType === 'cstore') {
-            successMessage = "Pembayaran di counter berhasil! Terima kasih atas donasi Anda.";
-          }
-          
-          alert(successMessage);
-          // Reset form
-          setData({
-            name: "",
-            email: "",
-            phone: "",
-            amount: "",
-            description: "",
-          });
+          // console.log("Success Response:", result);
+          reset();
           setIsAnonymous(false);
+          setAlert({
+            type: 'success',
+            message: 'Pembayaran berhasil! Terima kasih atas donasi Anda.'
+          });
         },
         onPending: function(result: any) {
-          console.log("Pending:", result);
-          // Check payment type for specific pending messages
-          const paymentType = result.payment_type;
-          let pendingMessage = "Menunggu pembayaran Anda!";
-          
-          if (paymentType === 'bank_transfer') {
-            pendingMessage = "Silakan lakukan transfer bank sesuai instruksi yang diberikan.";
-          } else if (paymentType === 'cstore') {
-            const paymentCode = result.payment_code;
-            pendingMessage = `Silakan lakukan pembayaran di Alfamart terdekat.\n\nKode Pembayaran: ${paymentCode}\n\nTunjukkan kode ini ke kasir Alfamart.`;
-          }
-          
-          alert(pendingMessage);
-          // Save payment status
-          setPaymentStatus({
-            status: 'pending',
-            donation_code: result.order_id,
-            message: pendingMessage
+          // console.log("Pending Response:", result);
+          setAlert({
+            type: 'success',
+            message: 'Silakan selesaikan pembayaran sesuai instruksi yang diberikan.'
           });
         },
         onError: function(result: any) {
-          console.error("Error:", result);
-          alert("Pembayaran gagal! Silakan coba lagi.");
+          // console.error("Error Response:", result);
+          setAlert({
+            type: 'error',
+            message: 'Pembayaran gagal: ' + result.status_message
+          });
         },
         onClose: function() {
-          alert("Anda menutup popup sebelum menyelesaikan pembayaran");
+          // console.log("Customer closed the popup without finishing the payment");
         }
       });
     } catch (error: any) {
-      console.error("Error:", error.response?.data || error);
-      alert("Terjadi kesalahan! Silakan coba lagi.");
+      // console.error("Error:", error.response?.data || error);
+      setAlert({
+        type: 'error',
+        message: 'Terjadi kesalahan: ' + (error.response?.data?.message || 'Silakan coba lagi')
+      });
     }
   };
 
@@ -183,40 +194,22 @@ export default function Donation() {
     <GuestLayout>
       <Head title="Donation - CFU" />
 
+      {alert.type === 'success' && (
+        <AlertSuccess
+          message={alert.message}
+          onClose={() => setAlert({ type: null, message: '' })}
+        />
+      )}
+
+      {alert.type === 'error' && (
+        <AlertError
+          message={alert.message}
+          onClose={() => setAlert({ type: null, message: '' })}
+        />
+      )}
+
       <div className="py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Payment Status Alert */}
-          {paymentStatus.status !== 'idle' && (
-            <div className="mb-6">
-              <Alert variant={
-                paymentStatus.status === 'success' ? 'default' :
-                paymentStatus.status === 'pending' ? 'default' :
-                'destructive'
-              }>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>
-                  {paymentStatus.status === 'success' ? 'Pembayaran Berhasil' :
-                   paymentStatus.status === 'pending' ? 'Menunggu Pembayaran' :
-                   paymentStatus.status === 'expired' ? 'Pembayaran Kedaluwarsa' :
-                   'Pembayaran Gagal'}
-                </AlertTitle>
-                <AlertDescription>
-                  {paymentStatus.message}
-                  {paymentStatus.status === 'pending' && paymentStatus.donation_code && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => cancelPayment(paymentStatus.donation_code!)}
-                      className="mt-2"
-                    >
-                      Batalkan Pembayaran
-                    </Button>
-                  )}
-                </AlertDescription>
-              </Alert>
-            </div>
-          )}
-
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Donation Form */}
             <Card>

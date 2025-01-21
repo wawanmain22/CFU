@@ -10,7 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Midtrans\Config;
 use Midtrans\Snap;
-use Midtrans\SnapBi;
+use SnapBi\SnapBi;
 use DateTime;
 
 class DonationController extends Controller
@@ -18,10 +18,19 @@ class DonationController extends Controller
     public function __construct()
     {
         // Set midtrans configuration
-        Config::$serverKey = config('midtrans.private_key');
+        Config::$serverKey = config('midtrans.server_key');
         Config::$isProduction = config('midtrans.is_production');
         Config::$isSanitized = true;
         Config::$is3ds = true;
+
+        // Set SNAP BI Configuration
+        \Midtrans\Config::$clientKey = config('midtrans.client_key');
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        \Midtrans\Config::$isSanitized = true;
+        \Midtrans\Config::$is3ds = true;
+        \Midtrans\Config::$appendNotifUrl = config('midtrans.notification_url');
+        \Midtrans\Config::$overrideNotifUrl = config('midtrans.notification_url');
     }
 
     public function index(): Response
@@ -31,6 +40,8 @@ class DonationController extends Controller
 
     public function store(Request $request)
     {
+        // Log::info('Starting donation process:', $request->all());
+
         // Validate request
         $request->validate([
             'amount' => 'required|numeric|min:10000',
@@ -41,10 +52,9 @@ class DonationController extends Controller
         ]);
 
         try {
-            // Set timezone dan generate donation code
-            date_default_timezone_set('Asia/Jakarta');
+            // Generate donation code
             $donation_code = 'DON-' . time() . '-' . Str::random(5);
-
+            
             // Create donation record
             $donation = Donation::create([
                 'name' => $request->name ?: 'Anonymous',
@@ -54,19 +64,20 @@ class DonationController extends Controller
                 'description' => $request->description,
                 'donation_code' => $donation_code,
                 'status' => 'pending',
+                'created_at' => now(),
             ]);
+
+            // Prepare transaction details
+            $transaction_details = [
+                'order_id' => $donation->donation_code,
+                'gross_amount' => (int) $donation->amount,
+            ];
 
             // Prepare customer details
             $customer_details = [
                 'first_name' => $donation->name,
                 'email' => $donation->email,
                 'phone' => $donation->phone,
-            ];
-
-            // Prepare transaction details
-            $transaction_details = [
-                'order_id' => $donation->donation_code,
-                'gross_amount' => (int) $donation->amount,
             ];
 
             // Prepare item details
@@ -87,28 +98,14 @@ class DonationController extends Controller
                 'transaction_details' => $transaction_details,
                 'customer_details' => $customer_details,
                 'item_details' => $item_details,
-                'enabled_payments' => [
-                    'gopay', 'shopeepay', 'dana',  // Direct Debit (E-wallet)
-                    'bank_transfer',                // Virtual Account
-                    'cstore',                       // Over The Counter
-                    'qris'                         // QRIS
+                'callbacks' => [
+                    'finish' => route('donation.finish'),
+                    'unfinish' => route('donation.unfinish'),
+                    'error' => route('donation.error'),
                 ],
-                'payment_options' => [
-                    'bank_transfer' => [
-                        'banks' => ['bca', 'bni', 'bri', 'mandiri']
-                    ]
-                ],
-                'cstore' => [
-                    'alfamart' => [
-                        'payment_code' => 'yes',  // Enable payment code generation
-                        'merchant_id' => config('midtrans.merchant_id', ''),  // Add merchant ID from config
-                        'message' => 'Tunjukkan kode pembayaran ini ke kasir'
-                    ]
-                ],
-                'custom_field1' => 'Donasi untuk Mahasiswa',
-                'custom_field2' => $donation->donation_code,
-                'custom_field3' => date('Y-m-d H:i:s')
             ];
+
+            // Log::info('Requesting Snap token with payload:', $payload);
 
             // Get Snap Payment Page URL
             $snapToken = Snap::getSnapToken($payload);
@@ -118,13 +115,17 @@ class DonationController extends Controller
                 'snap_token' => $snapToken
             ]);
 
-            // Return snap token
             return response()->json([
                 'status' => 'success',
                 'snap_token' => $snapToken,
             ]);
 
         } catch (\Exception $e) {
+            // Log::error('Payment Creation Error:', [
+            //     'message' => $e->getMessage(),
+            //     'trace' => $e->getTraceAsString()
+            // ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()
@@ -134,75 +135,98 @@ class DonationController extends Controller
 
     public function callback(Request $request)
     {
-        Log::info('Midtrans Notification received at: ' . now());
-        Log::info('Request Headers:', $request->headers->all());
-        Log::info('Request Body:', $request->all());
-        
-        try {
-            $serverKey = config('midtrans.private_key');
-            $hashed = hash("sha512", $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
+        // Log::info('Payment Notification received:', $request->all());
 
-            Log::info('Calculated Hash:', [
-                'order_id' => $request->order_id,
-                'status_code' => $request->status_code,
-                'gross_amount' => $request->gross_amount,
-                'calculated_hash' => $hashed,
-                'received_signature' => $request->signature_key
+        try {
+            // Handle regular Midtrans notification
+            $donation = Donation::where('donation_code', $request->order_id)->first();
+            
+            if (!$donation) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Donation not found'
+                ], 404);
+            }
+
+            // Update donation status
+            $donation->update([
+                'transaction_id' => $request->transaction_id,
+                'payment_type' => $request->payment_type,
+                'status' => match ($request->transaction_status) {
+                    'capture', 'settlement' => 'success',
+                    'pending' => 'pending',
+                    'deny', 'cancel', 'failure' => 'failed',
+                    'expire' => 'expired',
+                    default => $donation->status,
+                },
+                'updated_at' => now(),
+                'payment_info' => json_encode($request->all())
             ]);
 
-            if ($hashed == $request->signature_key) {
-                $donation = Donation::where('donation_code', $request->order_id)->first();
-                
-                if ($donation) {
-                    Log::info('Updating donation status:', [
-                        'donation_code' => $request->order_id,
-                        'transaction_status' => $request->transaction_status,
-                        'payment_type' => $request->payment_type
-                    ]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment notification processed'
+            ]);
 
-                    $donation->update([
-                        'transaction_id' => $request->transaction_id,
-                        'payment_type' => $request->payment_type,
-                        'status' => match ($request->transaction_status) {
-                            'capture', 'settlement' => 'success',
-                            'pending' => 'pending',
-                            'deny', 'cancel', 'failure' => 'failed',
-                            'expire' => 'expired',
-                            default => $donation->status,
-                        },
-                        'payment_info' => json_encode($request->all())
-                    ]);
+        } catch (\Exception $e) {
+            // Log::error('Error processing notification:', [
+            //     'message' => $e->getMessage(),
+            //     'trace' => $e->getTraceAsString()
+            // ]);
 
-                    Log::info('Donation status updated successfully');
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => 'Payment notification processed successfully'
-                    ]);
-                }
+    public function handleDanaNotification(Request $request)
+    {
+        // Log::info('DANA Payment Notification received:', $request->all());
 
-                Log::error('Donation not found:', ['order_id' => $request->order_id]);
-            } else {
-                Log::error('Invalid signature:', [
-                    'received' => $request->signature_key,
-                    'calculated' => $hashed
-                ]);
+        try {
+            $donation = Donation::where('donation_code', $request->originalPartnerReferenceNo)->first();
+            
+            if (!$donation) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Donation not found'
+                ], 404);
+            }
+
+            // Update donation status
+            $donation->update([
+                'transaction_id' => $request->originalReferenceNo,
+                'payment_type' => 'dana',
+                'status' => match ($request->latestTransactionStatus) {
+                    '00' => 'success',
+                    '03' => 'pending',
+                    '01', '02' => 'failed',
+                    default => $donation->status,
+                },
+                'updated_at' => now(),
+                'payment_info' => json_encode($request->all())
+            ]);
+
+            if ($donation->status === 'success') {
+                return redirect()->route('donation.finish');
             }
 
             return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid signature or donation not found'
-            ], 400);
+                'status' => 'success',
+                'message' => 'DANA notification processed'
+            ]);
 
         } catch (\Exception $e) {
-            Log::error('Error processing notification:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            // Log::error('Error processing DANA notification:', [
+            //     'message' => $e->getMessage(),
+            //     'trace' => $e->getTraceAsString()
+            // ]);
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Error processing notification: ' . $e->getMessage()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -212,12 +236,13 @@ class DonationController extends Controller
         try {
             $donation = Donation::where('donation_code', $donation_code)->firstOrFail();
             
-            // Get transaction status from Midtrans
-            $status = \Midtrans\Transaction::status($donation_code);
-            
             return response()->json([
                 'status' => 'success',
-                'data' => $status
+                'data' => [
+                    'status' => $donation->status,
+                    'payment_type' => $donation->payment_type,
+                    'amount' => $donation->amount,
+                ]
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -227,29 +252,27 @@ class DonationController extends Controller
         }
     }
 
-    public function cancel($donation_code)
+    public function finishUrl(Request $request)
     {
-        try {
-            $donation = Donation::where('donation_code', $donation_code)->firstOrFail();
-            
-            // Cancel transaction in Midtrans
-            $cancel = \Midtrans\Transaction::cancel($donation_code);
-            
-            // Update donation status
-            $donation->update([
-                'status' => 'cancelled',
-                'payment_info' => json_encode($cancel)
-            ]);
-            
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Transaction cancelled successfully'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        // Log::info('Payment Finish:', $request->all());
+        
+        return to_route('donation')
+            ->with('success', 'Pembayaran berhasil! Terima kasih atas donasi Anda.');
+    }
+
+    public function unfinishUrl(Request $request)
+    {
+        // Log::info('Payment Unfinish:', $request->all());
+        
+        return to_route('donation')
+            ->with('error', 'Pembayaran belum selesai. Silakan selesaikan pembayaran Anda.');
+    }
+
+    public function errorPaymentUrl(Request $request)
+    {
+        // Log::info('Payment Error:', $request->all());
+        
+        return to_route('donation')
+            ->with('error', 'Pembayaran gagal. Silakan coba lagi.');
     }
 }

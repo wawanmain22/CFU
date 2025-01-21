@@ -33,8 +33,6 @@ Route::middleware('guest')->group(function () {
 Route::group(['prefix' => 'donation'], function () {
     Route::get('/', [DonationController::class, 'index'])->name('donation');
     Route::post('/', [DonationController::class, 'store'])->name('donation.store');
-    Route::get('/donation/{donation_code}/status', [DonationController::class, 'getStatus'])->name('donation.status');
-    Route::post('/donation/{donation_code}/cancel', [DonationController::class, 'cancel'])->name('donation.cancel');
 });
 
 

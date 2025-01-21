@@ -1,7 +1,7 @@
 import { PropsWithChildren, useState, useEffect } from "react";
 import { Head, Link } from "@inertiajs/react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/Components/ui/scroll-area";
 import {
   Sheet,

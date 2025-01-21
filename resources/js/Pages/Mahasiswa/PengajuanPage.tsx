@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, FileText, Info, Send, ClipboardList, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/Components/ui/alert";
 import { useEffect, useState } from "react";
+import AlertSuccess from "@/Components/AlertSuccess";
+import AlertError from "@/Components/AlertError";
 
 interface Props extends PageProps {
   canSubmit: boolean;
@@ -20,36 +22,11 @@ interface Props extends PageProps {
   hasSubmitted: boolean;
   flash: {
     success?: string;
+    error?: string;
   };
 }
 
 export default function PengajuanPage({ auth, canSubmit, currentBatch, hasSubmitted, flash }: Props) {
-  const [showAlert, setShowAlert] = useState(false);
-  const [countdown, setCountdown] = useState(3);
-
-  useEffect(() => {
-    if (flash.success) {
-      setShowAlert(true);
-      setCountdown(3);
-
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setTimeout(() => {
-              setShowAlert(false);
-              window.location.reload();
-            }, 1000);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [flash.success]);
-
   const { data, setData, post, processing, errors } = useForm({
     batch_id: currentBatch?.id || '',
     dokumen_pengajuan: null as File | null,
@@ -62,8 +39,8 @@ export default function PengajuanPage({ auth, canSubmit, currentBatch, hasSubmit
   };
 
   const renderContent = () => {
-    // Jika batch closed
-    if (currentBatch?.status === 'closed') {
+    // Jika batch closed atau batch belum ada
+    if (currentBatch?.status === 'closed' || currentBatch == null) {
       return (
         <Alert className="bg-yellow-50 border-yellow-200">
           <Clock className="h-5 w-5 text-yellow-600" />
@@ -201,15 +178,8 @@ export default function PengajuanPage({ auth, canSubmit, currentBatch, hasSubmit
           </p>
         </div>
 
-        {showAlert && flash.success && (
-          <Alert className="bg-green-50 border-green-200">
-            <Info className="h-5 w-5 text-green-600" />
-            <AlertDescription className="text-green-800 font-medium flex items-center justify-between">
-              <span>{flash.success}</span>
-              <span className="text-sm text-green-600">({countdown}s)</span>
-            </AlertDescription>
-          </Alert>
-        )}
+        {flash.success && <AlertSuccess message={flash.success} />}
+        {flash.error && <AlertError message={flash.error} />}
 
         {renderContent()}
       </div>
