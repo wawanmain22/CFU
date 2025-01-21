@@ -10,4 +10,21 @@ export default defineConfig({
         }),
         react(),
     ],
+    server: {
+        https: true,
+    },
+
+    build: {
+        manifest: true,
+        assetsDir: '',
+        output: 'public/build',
+        rollupOptions: {
+            output: {
+                assetFileNames: '[name]-[hash].[extname]',
+                chunkFileNames: '[name]-[hash].js',
+                entryFileNames: '[name]-[hash].js',
+            },
+        },
+    },
 });
+
