@@ -95,7 +95,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[200px] overflow-y-auto">
               {years.reverse().map((year) => (
                 <SelectItem key={year} value={year.toString()}>
                   {year}
