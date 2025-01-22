@@ -49,7 +49,7 @@ return [
             'timeout' => null,
             'auth_mode' => null,
             'verify_peer' => false,
-            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'https://localhost'), PHP_URL_HOST)),
         ],
 
         'ses' => [
