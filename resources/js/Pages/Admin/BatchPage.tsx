@@ -2,7 +2,7 @@ import StaffLayout from "@/Layouts/StaffLayout";
 import { Head, useForm } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import { Button } from "@/Components/ui/button";
-import { PlusIcon, PencilIcon } from "lucide-react";
+import { PlusIcon, PencilIcon, SearchIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -20,11 +20,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/Components/ui/alert-dialog";
 import { useState } from "react";
 import { format } from "date-fns";
 import AlertSuccess from "@/Components/AlertSuccess";
 import AlertError from "@/Components/AlertError";
+import { Input } from "@/Components/ui/input";
 
 interface Batch {
   id: number;
@@ -46,8 +48,13 @@ export default function BatchPage({ auth, batches, flash }: Props) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [localFlash, setLocalFlash] = useState(flash);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const { post, put } = useForm();
+
+  const filteredBatches = batches.filter((batch) =>
+    batch.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleCreate = () => {
     post(route('staff.batch.store'), {
@@ -75,7 +82,7 @@ export default function BatchPage({ auth, batches, flash }: Props) {
     <StaffLayout user={auth.user}>
       <Head title="Batch Management" />
       
-      <div className="space-y-4">
+      <div className="space-y-4 p-8">
         {localFlash.success && (
           <AlertSuccess message={localFlash.success} />
         )}
@@ -98,6 +105,17 @@ export default function BatchPage({ auth, batches, flash }: Props) {
           </Button>
         </div>
 
+        <div className="flex items-center space-x-2 mb-4">
+          <SearchIcon className="w-4 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by batch name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+
         <div className="rounded-lg border">
           <Table>
             <TableHeader>
@@ -111,7 +129,7 @@ export default function BatchPage({ auth, batches, flash }: Props) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {batches?.map((batch, index) => (
+              {filteredBatches.map((batch, index) => (
                 <TableRow key={batch.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">{batch.name}</TableCell>
@@ -154,7 +172,7 @@ export default function BatchPage({ auth, batches, flash }: Props) {
 
       {/* Create Batch Dialog */}
       <AlertDialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
           <AlertDialogHeader>
             <AlertDialogTitle>Tambah Data Batch</AlertDialogTitle>
             <AlertDialogDescription>
@@ -175,7 +193,7 @@ export default function BatchPage({ auth, batches, flash }: Props) {
         open={selectedBatchId !== null} 
         onOpenChange={(open) => !open && setSelectedBatchId(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
           <AlertDialogHeader>
             <AlertDialogTitle>Tutup Batch</AlertDialogTitle>
             <AlertDialogDescription>

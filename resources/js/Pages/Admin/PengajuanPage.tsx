@@ -21,7 +21,7 @@ import {
 import { Label } from "@/Components/ui/label";
 import { Textarea } from "@/Components/ui/textarea";
 import { Input } from "@/Components/ui/input";
-import { FileText, Eye } from "lucide-react";
+import { FileText, Eye, SearchIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { 
   Select,
@@ -86,6 +86,7 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showActionDialog, setShowActionDialog] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data, setData, put, processing, errors, reset } = useForm<FormData>({
     status: '',
@@ -93,6 +94,10 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
     dokumen_approved: null,
     foto_dokumentasi_approved: null,
   });
+
+  const filteredPengajuans = pengajuans.filter((pengajuan) =>
+    pengajuan.user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleAction = (pengajuan: Pengajuan) => {
     setSelectedPengajuan(pengajuan);
@@ -170,7 +175,7 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
     <StaffLayout user={auth.user}>
       <Head title="Pengajuan Management" />
       
-      <div className="space-y-6">
+      <div className="space-y-6 p-8">
         <div className="border-b pb-4">
           <div className="flex items-center gap-2 mb-1">
             <FileText className="h-6 w-6 text-primary" />
@@ -182,6 +187,17 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
         </div>
 
         {flash.success && <AlertSuccess message={flash.success} />}
+
+        <div className="flex items-center space-x-2 mb-4">
+          <SearchIcon className="w-4 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by student name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
 
         <div className="rounded-lg border">
           <Table>
@@ -196,7 +212,7 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pengajuans.map((pengajuan, index) => (
+              {filteredPengajuans.map((pengajuan, index) => (
                 <TableRow key={pengajuan.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>
