@@ -8,6 +8,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetTrigger,
 } from "@/Components/ui/sheet";
 import { Menu, ChevronLeft, ChevronRight, User, Layers } from "lucide-react";
@@ -210,12 +211,22 @@ export default function StaffLayout({
           "lg:ml-64",
           collapsed && "lg:ml-16"
         )}>
-          <header className="flex h-14 items-center border-b px-4 lg:px-6">
+          <header className={cn(
+            "flex h-14 items-center border-b px-4 lg:px-6 bg-background",
+            "lg:fixed lg:top-0 lg:right-0 lg:left-64",
+            collapsed && "lg:left-16",
+            "transition-[left] duration-300"
+          )}>
             <div className="ml-auto flex items-center gap-2">
               <ModeToggle />
+              <div className="flex items-center gap-2 ml-2">
+                <span className="text-sm font-medium hidden sm:inline-block">
+                  {user.name}
+                </span>
+              </div>
             </div>
           </header>
-          <main className="flex-1 p-4 lg:p-6">{children}</main>
+          <main className="flex-1 p-4 lg:p-6 lg:pt-[3.5rem]">{children}</main>
         </div>
 
         {/* Mobile sidebar */}
@@ -223,84 +234,94 @@ export default function StaffLayout({
           <SheetTrigger asChild>
             <Button
               variant="ghost"
-              className="h-8 w-8 p-0 lg:hidden fixed left-4 top-3"
+              size="icon"
+              className="h-10 w-10 p-0 lg:hidden fixed left-2 top-2 z-50 bg-background/80 backdrop-blur-sm border shadow-sm"
             >
               <Menu className="h-4 w-4" />
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 bg-sidebar-background p-0">
-            <SheetHeader className="h-14 border-b px-3">
-              <SheetTitle>Dashboard</SheetTitle>
-            </SheetHeader>
-            <ScrollArea className="flex-1">
-              <div className="flex flex-col gap-4 p-2">
-                <div className="space-y-1">
-                  <Link href={route('staff.dashboard')} as="div">
-                    <div
-                      className={cn(
+          <SheetContent 
+            side="left" 
+            className="w-[280px] lg:hidden p-0"
+          >
+            <div className="h-full flex flex-col bg-background">
+              <SheetHeader className="h-14 border-b px-3">
+                <SheetTitle>Staff Panel</SheetTitle>
+                <SheetDescription>
+                  Navigation menu for staff dashboard
+                </SheetDescription>
+              </SheetHeader>
+              <ScrollArea className="flex-1">
+                <div className="flex flex-col gap-4 p-2">
+                  <div className="space-y-1">
+                    <Link href={route('staff.dashboard')} as="div">
+                      <div
+                        className={cn(
+                          "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
+                          "transition-all duration-200 ease-in-out",
+                          "hover:bg-accent hover:text-accent-foreground",
+                          route().current('staff.dashboard') && "bg-sidebar-accent"
+                        )}
+                      >
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </div>
+                    </Link>
+                    <Link href={route('staff.batch')} as="div">
+                      <div
+                        className={cn(
+                          "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
+                          "transition-all duration-200 ease-in-out",
+                          "hover:bg-accent hover:text-accent-foreground",
+                          route().current('staff.batch') && "bg-sidebar-accent"
+                        )}
+                      >
+                        <Layers className="h-4 w-4 mr-2" />
+                        Batch
+                      </div>
+                    </Link>
+                    <Link href={route('staff.pengajuan')} as="div">
+                      <div
+                        className={cn(
+                          "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
+                          "transition-all duration-200 ease-in-out",
+                          "hover:bg-accent hover:text-accent-foreground",
+                          route().current('staff.pengajuan') && "bg-sidebar-accent"
+                        )}
+                      >
+                        <ClipboardList className="h-4 w-4 mr-2" />
+                        Pengajuan
+                      </div>
+                    </Link>
+                    <Link href={route('staff.profile')} as="div">
+                      <div
+                        className={cn(
+                          "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
+                          "transition-all duration-200 ease-in-out",
+                          "hover:bg-accent hover:text-accent-foreground",
+                          route().current('staff.profile') && "bg-sidebar-accent"
+                        )}
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        Profile
+                      </div>
+                    </Link>
+                    <Link href={route('logout')} method="post" as="div">
+                      <div className={cn(
                         "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
                         "transition-all duration-200 ease-in-out",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        route().current('staff.dashboard') && "bg-sidebar-accent"
-                      )}
-                    >
-                      <LayoutDashboard className="h-4 w-4 mr-2" />
-                      Dashboard
-                    </div>
-                  </Link>
-                  <Link href={route('staff.batch')} as="div">
-                    <div
-                      className={cn(
-                        "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
-                        "transition-all duration-200 ease-in-out",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        route().current('staff.batch') && "bg-sidebar-accent"
-                      )}
-                    >
-                      <Layers className="h-4 w-4 mr-2" />
-                      Batch
-                    </div>
-                  </Link>
-                  <Link href={route('staff.pengajuan')} as="div">
-                    <div
-                      className={cn(
-                        "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
-                        "transition-all duration-200 ease-in-out",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        route().current('staff.pengajuan') && "bg-sidebar-accent"
-                      )}
-                    >
-                      <ClipboardList className="h-4 w-4 mr-2" />
-                      Pengajuan
-                    </div>
-                  </Link>
-                  <Link href={route('staff.profile')} as="div">
-                    <div
-                      className={cn(
-                        "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
-                        "transition-all duration-200 ease-in-out",
-                        "hover:bg-accent hover:text-accent-foreground",
-                        route().current('staff.profile') && "bg-sidebar-accent"
-                      )}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Profile
-                    </div>
-                  </Link>
-                  <Link href={route('logout')} method="post" as="div">
-                    <div className={cn(
-                      "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md",
-                      "transition-all duration-200 ease-in-out",
-                      "text-red-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900"
-                    )}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </div>
-                  </Link>
+                        "text-red-500 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900",
+                        "mt-4"
+                      )}>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                      </div>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </ScrollArea>
+              </ScrollArea>
+            </div>
           </SheetContent>
         </Sheet>
       </div>
