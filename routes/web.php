@@ -51,6 +51,7 @@ Route::middleware(['auth', 'checkRole'])->group(function () {
 
     // Pengajuan Routes
     Route::get('/staff/pengajuan', [StaffPengajuanController::class, 'index'])->name('staff.pengajuan');
+    Route::get('/staff/pengajuan/export-pdf', [StaffPengajuanController::class, 'exportPdf'])->name('staff.pengajuan.export-pdf');
     Route::put('/staff/pengajuan/{pengajuan}', [StaffPengajuanController::class, 'update'])->name('staff.pengajuan.update');
     Route::get('/staff/pengajuan/{pengajuan}', [StaffPengajuanController::class, 'show'])->name('staff.pengajuan.show');
     Route::get('/staff/pengajuan/{pengajuan}/file/{type}', [StaffPengajuanController::class, 'downloadFile'])->name('staff.pengajuan.download');

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PengajuanController extends Controller
 {
@@ -142,6 +143,18 @@ class PengajuanController extends Controller
         }
 
         return Storage::response($filePath);
+    }
+
+    public function exportPdf()
+    {
+        $pengajuans = Pengajuan::with(['user', 'batch'])
+            ->latest()
+            ->get();
+
+
+        $pdf = PDF::loadView('pdf.pengajuan-list', ['pengajuans' => $pengajuans]);
+        
+        return $pdf->download('daftar-pengajuan.pdf');
     }
 }
     

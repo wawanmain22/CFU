@@ -21,7 +21,7 @@ import {
 import { Label } from "@/Components/ui/label";
 import { Textarea } from "@/Components/ui/textarea";
 import { Input } from "@/Components/ui/input";
-import { FileText, Eye, SearchIcon } from "lucide-react";
+import { FileText, Eye, SearchIcon, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 import { 
   Select,
@@ -177,9 +177,19 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
       
       <div className="space-y-6 p-8">
         <div className="border-b pb-4">
-          <div className="flex items-center gap-2 mb-1">
-            <FileText className="h-6 w-6 text-primary" />
-            <h2 className="text-2xl font-bold tracking-tight">Pengajuan Management</h2>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-bold tracking-tight">Pengajuan Management</h2>
+            </div>
+            <Button
+              onClick={() => window.open(route('staff.pengajuan.export-pdf'), '_blank')}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Export PDF
+            </Button>
           </div>
           <p className="text-muted-foreground">
             Review and manage student crowdfunding submissions.
