@@ -107,14 +107,14 @@ export default function About() {
 const teamMembers = [
   {
     name: "Ridwan",
-    role: "Project Lead & Backend Developer",
+    role: "Project Lead & Full Ngestuck Developer",
     description: "Mengkoordinasikan tim dan mengembangkan backend sistem dengan Laravel.",
     icon: <Code2 className="h-12 w-12 text-primary" />,
     image: "/aboutUs/Ridwan.jpeg",
   },
   {
     name: "Rangga",
-    role: "Frontend Developer",
+    role: "System Analyst",
     description: "Membangun antarmuka pengguna yang menarik dan responsif dengan React.",
     icon: <Laptop2 className="h-12 w-12 text-primary" />,
     image: "/aboutUs/Rangga.jpeg",
@@ -135,14 +135,14 @@ const teamMembers = [
   },
   {
     name: "Fadly",
-    role: "Frontend Developer",
+    role: "Backend Developer",
     description: "Mengimplementasikan desain ke dalam kode yang bersih dan efisien.",
     icon: <Laptop2 className="h-12 w-12 text-primary" />,
     image: "/aboutUs/Fadly.jpeg",
   },
   {
     name: "Dhika",
-    role: "Full Stack Developer",
+    role: "System Analyst",
     description: "Mengembangkan fitur-fitur full stack untuk platform.",
     icon: <Code2 className="h-12 w-12 text-primary" />,
     image: "/aboutUs/Dhika.jpeg",
