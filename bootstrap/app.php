@@ -20,7 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register CheckRole middleware
         $middleware->alias([
             'checkRole' => \App\Http\Middleware\CheckRole::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -4,6 +4,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Com
 import { PageProps } from "@/types";
 import { FileText, Clock, CheckCircle2, Coins, Users } from "lucide-react";
 import { Badge } from "@/Components/ui/badge";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartOptions,
+  ChartData,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface Props extends PageProps {
   stats: {
@@ -20,9 +43,106 @@ interface Props extends PageProps {
     message: string | null;
     created_at: string;
   }[];
+  donationTrends: {
+    date: string;
+    count: number;
+  }[];
 }
 
-export default function DashboardPage({ auth, stats, recentDonations }: Props) {
+export default function DashboardPage({ auth, stats, recentDonations, donationTrends }: Props) {
+  const chartData: ChartData<"line"> = {
+    labels: donationTrends.map(item => new Date(item.date).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+    })),
+    datasets: [
+      {
+        label: 'Jumlah Donatur',
+        data: donationTrends.map(item => item.count),
+        borderColor: 'rgb(147, 51, 234)',
+        backgroundColor: 'rgba(147, 51, 234, 0.5)',
+        tension: 0.3,
+      },
+    ],
+  };
+
+  const chartOptions: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Tren Donatur 7 Hari Terakhir',
+        font: {
+          size: 16,
+          weight: 'bold',
+        },
+        padding: 20,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+          padding: 10,
+        },
+        title: {
+          display: true,
+          text: 'Jumlah Donatur',
+          font: {
+            size: 14,
+            weight: 'bold',
+          },
+          padding: { bottom: 10 },
+        },
+        grid: {
+          display: true,
+          color: 'rgba(107, 114, 128, 0.1)',
+          drawOnChartArea: true,
+        },
+        border: {
+          display: true,
+          color: 'rgba(107, 114, 128, 0.2)',
+        },
+      },
+      x: {
+        ticks: {
+          padding: 10,
+        },
+        title: {
+          display: true,
+          text: 'Tanggal',
+          font: {
+            size: 14,
+            weight: 'bold',
+          },
+          padding: { top: 10 },
+        },
+        grid: {
+          display: true,
+          color: 'rgba(107, 114, 128, 0.1)',
+          drawOnChartArea: true,
+        },
+        border: {
+          display: true,
+          color: 'rgba(107, 114, 128, 0.2)',
+        },
+      },
+    },
+    layout: {
+      padding: {
+        left: 10,
+        right: 30,
+        top: 20,
+        bottom: 10,
+      },
+    },
+  };
+
   return (
     <StaffLayout user={auth.user}>
       <Head title="Dashboard - Staff Panel" />
@@ -111,6 +231,21 @@ export default function DashboardPage({ auth, stats, recentDonations }: Props) {
             </CardContent>
           </Card>
         </div>
+
+        {/* Donation Trends Chart */}
+        <Card className="bg-card/50 dark:bg-card/50 shadow-sm">
+          <CardHeader className="p-4 border-b">
+            <CardTitle className="text-lg">Tren Donatur</CardTitle>
+            <CardDescription>
+              Grafik jumlah donatur dalam 7 hari terakhir
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="h-[300px]">
+              <Line data={chartData} options={chartOptions} />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Recent Donations */}
         <Card className="bg-card/50 dark:bg-card/50 shadow-sm">

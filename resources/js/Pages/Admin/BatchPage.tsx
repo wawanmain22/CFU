@@ -60,9 +60,11 @@ export default function BatchPage({ auth, batches, flash }: Props) {
     post(route('staff.batch.store'), {
       preserveScroll: true,
       preserveState: true,
-      onSuccess: (page: any) => {
+      onSuccess: async (page: any) => {
         setShowCreateDialog(false);
         setLocalFlash(page.props.flash);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        window.location.reload();
       },
     });
   };
@@ -71,9 +73,11 @@ export default function BatchPage({ auth, batches, flash }: Props) {
     put(route('staff.batch.update', id), {
       preserveScroll: true,
       preserveState: true,
-      onSuccess: (page: any) => {
+      onSuccess: async (page: any) => {
         setSelectedBatchId(null);
         setLocalFlash(page.props.flash);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        window.location.reload();
       },
     });
   };

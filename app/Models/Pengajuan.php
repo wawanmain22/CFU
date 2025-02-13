@@ -18,7 +18,8 @@ class Pengajuan extends Model
         'dokumen_approved',
         'foto_dokumentasi_approved',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'deleted_at'
     ];
 
     public function user()

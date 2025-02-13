@@ -21,7 +21,7 @@ import {
 import { Label } from "@/Components/ui/label";
 import { Textarea } from "@/Components/ui/textarea";
 import { Input } from "@/Components/ui/input";
-import { FileText, Eye, SearchIcon, Download } from "lucide-react";
+import { FileText, Eye, SearchIcon, Download, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { 
   Select,
@@ -85,6 +85,7 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
   const [selectedPengajuan, setSelectedPengajuan] = useState<Pengajuan | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showActionDialog, setShowActionDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject' | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -171,6 +172,23 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
     return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[status]}`}>{statusText[status]}</span>;
   };
 
+  const handleDelete = (pengajuan: Pengajuan) => {
+    setSelectedPengajuan(pengajuan);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (!selectedPengajuan) return;
+    
+    router.delete(route('staff.pengajuan.destroy', selectedPengajuan.id), {
+      onSuccess: () => {
+        setShowDeleteDialog(false);
+        setSelectedPengajuan(null);
+      },
+      preserveScroll: true,
+    });
+  };
+
   return (
     <StaffLayout user={auth.user}>
       <Head title="Pengajuan Management" />
@@ -241,25 +259,36 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
                     minute: '2-digit'
                   })}</TableCell>
                   <TableCell className="text-right">
-                    {pengajuan.status === 'pending' ? (
-                      <Button
-                        onClick={() => handleAction(pengajuan)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Review Pengajuan
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={() => handleShowDetail(pengajuan)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Detail
-                      </Button>
-                    )}
+                    <div className="flex justify-end gap-2">
+                      {pengajuan.status === 'pending' ? (
+                        <Button
+                          onClick={() => handleAction(pengajuan)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <FileText className="h-4 w-4 mr-1" />
+                          Review Pengajuan
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleShowDetail(pengajuan)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Detail
+                        </Button>
+                      )}
+                      {pengajuan.status === 'rejected' && (
+                        <Button
+                          onClick={() => handleDelete(pengajuan)}
+                          variant="destructive"
+                          size="sm"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -556,6 +585,37 @@ export default function PengajuanPage({ auth, pengajuans, flash }: Props) {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Konfirmasi Hapus Pengajuan</DialogTitle>
+              <DialogDescription>
+                Apakah Anda yakin ingin menghapus pengajuan ini? Tindakan ini tidak dapat dibatalkan.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setSelectedPengajuan(null);
+                }}
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDelete}
+              >
+                Hapus
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

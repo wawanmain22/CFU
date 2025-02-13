@@ -15,7 +15,9 @@ class PengajuanController extends Controller
 {
     public function index():Response
     {
+        // mengambil data pengajuan yang kolom deleted_at nya null
         $pengajuans = Pengajuan::with(['user', 'batch'])
+            ->whereNull('deleted_at')
             ->latest()
             ->get()
             ->map(function ($pengajuan) {
@@ -147,7 +149,9 @@ class PengajuanController extends Controller
 
     public function exportPdf()
     {
+        // mengambil data pengajuan yang kolom deleted_at nya null
         $pengajuans = Pengajuan::with(['user', 'batch'])
+            ->whereNull('deleted_at')
             ->latest()
             ->get();
 
@@ -155,6 +159,15 @@ class PengajuanController extends Controller
         $pdf = PDF::loadView('pdf.pengajuan-list', ['pengajuans' => $pengajuans]);
         
         return $pdf->download('daftar-pengajuan.pdf');
+    }
+
+    public function destroy(Pengajuan $pengajuan)
+    {
+        // soft delete. so its only adding value to deleted_at column
+        $pengajuan->deleted_at = now();
+        $pengajuan->save();
+
+        return back()->with('success', 'Pengajuan berhasil dihapus');
     }
 }
     

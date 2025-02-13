@@ -25,20 +25,16 @@ Route::middleware('guest')->group(function () {
     Route::get('/about', function () {
         return Inertia::render('About');
     });
+
+    // Donation Routes
+    Route::group(['prefix' => 'donation'], function () {
+        Route::get('/', [DonationController::class, 'index'])->name('donation');
+        Route::post('/', [DonationController::class, 'store'])->name('donation.store');
+    });
 });
-
-
-// Donation Routes
-Route::group(['prefix' => 'donation'], function () {
-    Route::get('/', [DonationController::class, 'index'])->name('donation');
-    Route::post('/', [DonationController::class, 'store'])->name('donation.store');
-});
-
-
 
 // Protected routes
 Route::middleware(['auth', 'checkRole'])->group(function () {
-
     // Staff routes
 
     // Dashboard Routes
@@ -55,6 +51,7 @@ Route::middleware(['auth', 'checkRole'])->group(function () {
     Route::put('/staff/pengajuan/{pengajuan}', [StaffPengajuanController::class, 'update'])->name('staff.pengajuan.update');
     Route::get('/staff/pengajuan/{pengajuan}', [StaffPengajuanController::class, 'show'])->name('staff.pengajuan.show');
     Route::get('/staff/pengajuan/{pengajuan}/file/{type}', [StaffPengajuanController::class, 'downloadFile'])->name('staff.pengajuan.download');
+    Route::delete('/staff/pengajuan/{pengajuan}', [StaffPengajuanController::class, 'destroy'])->name('staff.pengajuan.destroy');
 
     // Profile Routes
     Route::get('/staff/profile', [StaffProfileController::class, 'index'])->name('staff.profile');
